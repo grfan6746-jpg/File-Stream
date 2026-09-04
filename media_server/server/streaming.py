@@ -1,5 +1,6 @@
 import os
 import re
+import urllib.parse
 import mimetypes
 from flask import Response, request, abort
 
@@ -18,6 +19,26 @@ mimetypes.add_type('audio/wav', '.wav')
 mimetypes.add_type('audio/aac', '.aac')
 mimetypes.add_type('audio/mp4', '.m4a')
 
+def get_safe_content_disposition(file_path, disposition='inline'):
+    """
+    Generates an RFC 5987 / RFC 6266 compliant Content-Disposition header.
+    Guarantees 100% ASCII/Latin-1 compatibility for Python's http.server/WSGI
+    to prevent UnicodeEncodeError when streaming files with Persian/Arabic/Unicode names,
+    while allowing modern browsers and VLC to receive the original UTF-8 filename.
+    """
+    try:
+        raw_name = os.path.basename(file_path)
+        ext = os.path.splitext(raw_name)[1]
+        # ASCII fallback: replace non-ASCII and quotes/control chars with '_'
+        clean_ascii = re.sub(r'[^\x20-\x7E]|["\';\\]', '_', raw_name).strip()
+        if not clean_ascii or clean_ascii == ext:
+            clean_ascii = f"media{ext}"
+        # Percent-encode original UTF-8 filename (strictly ASCII chars only: %XX, A-Z, 0-9)
+        utf8_encoded = urllib.parse.quote(raw_name, safe='')
+        return f'{disposition}; filename="{clean_ascii}"; filename*=UTF-8\'\'{utf8_encoded}'
+    except Exception:
+        return f'{disposition}; filename="media.mp4"'
+
 def stream_file_with_range(file_path, chunk_size=1024 * 1024):
     """
     Streams a media file with full support for HTTP Range requests (RFC 7233).
@@ -32,6 +53,7 @@ def stream_file_with_range(file_path, chunk_size=1024 * 1024):
     if not mime_type:
         mime_type = 'application/octet-stream'
 
+    disposition_header = get_safe_content_disposition(file_path, disposition='inline')
     range_header = request.headers.get('Range', None)
 
     # If client did not request Range, serve standard full stream with Accept-Ranges
@@ -49,7 +71,7 @@ def stream_file_with_range(file_path, chunk_size=1024 * 1024):
             'Content-Length': str(file_size),
             'Accept-Ranges': 'bytes',
             'Cache-Control': 'no-cache',
-            'Content-Disposition': f'inline; filename="{os.path.basename(file_path)}"'
+            'Content-Disposition': disposition_header
         }
         return Response(full_generator(), status=200, headers=headers)
 
@@ -93,7 +115,7 @@ def stream_file_with_range(file_path, chunk_size=1024 * 1024):
         'Content-Length': str(length),
         'Accept-Ranges': 'bytes',
         'Cache-Control': 'no-cache',
-        'Content-Disposition': f'inline; filename="{os.path.basename(file_path)}"'
+        'Content-Disposition': disposition_header
     }
 
     return Response(partial_generator(), status=206, headers=headers)
