@@ -1,0 +1,140 @@
+{% extends 'base.html' %}
+
+{% block title %}تنظیمات - {{ config.server_name }}{% endblock %}
+
+{% block content %}
+<div class="settings-wrapper">
+
+  <div class="settings-header-banner">
+    <h2>⚙️ تنظیمات مدیا سرور تلویزیون</h2>
+    <p>پیکربندی پورت، احراز هویت، تم و مدیریت حافظه‌ها و USB</p>
+  </div>
+
+  {% if message %}
+    <div class="alert-box alert-{{ message_type }}">
+      <span>✓ {{ message }}</span>
+    </div>
+  {% endif %}
+
+  <div class="settings-grid-layout">
+    
+    <!-- General Settings Form -->
+    <div class="settings-card">
+      <h3 class="card-subtitle">تنظیمات اصلی سرور</h3>
+      <form method="POST" action="{{ url_for('main.settings') }}" class="settings-form">
+        
+        <div class="form-group">
+          <label for="server_name">نام نمایشی سرور (Media Server Name):</label>
+          <input type="text" id="server_name" name="server_name" value="{{ config.server_name }}" required>
+        </div>
+
+        <div class="form-group">
+          <label for="port">پورت شبکه (Port):</label>
+          <input type="number" id="port" name="port" value="{{ config.port }}" min="1024" max="65535" required>
+          <small class="field-hint">پیش‌فرض: 8080 (پورت‌های بالای 1024 در Termux بدون نیاز به روت اجرا می‌شوند)</small>
+        </div>
+
+        <div class="form-group-checkbox">
+          <label class="switch">
+            <input type="checkbox" id="authentication" name="authentication" value="true" {% if config.authentication %}checked{% endif %} onchange="toggleAuthFields(this.checked)">
+            <span class="slider round"></span>
+          </label>
+          <span class="switch-label">فعال‌سازی رمز عبور (Password Protection)</span>
+        </div>
+
+        <div id="auth-fields" class="{% if not config.authentication %}hidden{% endif %} auth-inputs-box">
+          <div class="form-group">
+            <label for="username">نام کاربری:</label>
+            <input type="text" id="username" name="username" value="{{ config.username }}">
+          </div>
+
+          <div class="form-group">
+            <label for="password">رمز عبور:</label>
+            <div class="password-input-wrap">
+              <input type="password" id="password" name="password" placeholder="برای عدم تغییر خالی بگذارید">
+              <button type="button" class="btn-toggle-pwd" onclick="togglePasswordVisibility('password')">👁️</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-group-checkbox">
+          <label class="switch">
+            <input type="checkbox" id="show_hidden_files" name="show_hidden_files" value="true" {% if config.show_hidden_files %}checked{% endif %}>
+            <span class="slider round"></span>
+          </label>
+          <span class="switch-label">نمایش فایل‌های مخفی (Hidden Files)</span>
+        </div>
+
+        <div class="form-group">
+          <label for="theme">تم رابط کاربری:</label>
+          <select id="theme" name="theme">
+            <option value="dark" {% if config.theme == 'dark' %}selected{% endif %}>تاریک (Dark Mode - مناسب تلویزیون)</option>
+            <option value="light" {% if config.theme == 'light' %}selected{% endif %}>روشن (Light Mode)</option>
+          </select>
+        </div>
+
+        <div class="form-actions">
+          <button type="submit" class="action-btn btn-save">💾 ذخیره تغییرات</button>
+        </div>
+      </form>
+    </div>
+
+    <!-- Storage Management & USB Discovery -->
+    <div class="settings-card">
+      <h3 class="card-subtitle">مدیریت حافظه‌ها و USB</h3>
+      
+      <!-- Auto Detected USBs Section -->
+      {% if detected_usbs %}
+        <div class="detected-usbs-box">
+          <h4>🔍 درایوهای USB شناسایی شده در سیستم:</h4>
+          <ul class="usb-candidates-list">
+            {% for usb in detected_usbs %}
+              <li>
+                <span>💾 <strong>{{ usb.name }}</strong> ({{ usb.path }})</span>
+                <button class="action-btn-sm" onclick="quickAddStorage('{{ usb.name }}', '{{ usb.path }}')">+ افزودن</button>
+              </li>
+            {% endfor %}
+          </ul>
+        </div>
+      {% endif %}
+
+      <!-- Current Storages List -->
+      <h4 class="sub-list-title">مسیرهای ذخیره‌سازی فعال:</h4>
+      <div class="storages-manage-list">
+        {% for s in config.storages %}
+          <div class="manage-storage-item">
+            <div class="storage-info">
+              <span class="st-name">{{ s.name }}</span>
+              <span class="st-path">{{ s.path }}</span>
+            </div>
+            <button class="btn-remove-storage" onclick="removeStorage('{{ s.name }}')" title="حذف این حافظه">&times;</button>
+          </div>
+        {% endfor %}
+      </div>
+
+      <!-- Add New Storage Form -->
+      <div class="add-storage-form-box">
+        <h4>+ افزودن حافظه یا پوشه جدید</h4>
+        <div class="form-group">
+          <label for="new_storage_name">نام حافظه:</label>
+          <input type="text" id="new_storage_name" placeholder="مثال: External Hard 2TB">
+        </div>
+        <div class="form-group">
+          <label for="new_storage_path">مسیر دقیق در Termux/Android:</label>
+          <input type="text" id="new_storage_path" placeholder="مثال: ~/storage/external-1 یا /sdcard/Movies">
+        </div>
+        <div class="quick-path-chips">
+          <span>مسیرهای متداول:</span>
+          <button type="button" class="chip-btn" onclick="setPathInput('/sdcard')">حافظه داخلی (/sdcard)</button>
+          <button type="button" class="chip-btn" onclick="setPathInput('~/storage/external-1')">USB اول (Termux SAF)</button>
+          <button type="button" class="chip-btn" onclick="setPathInput('/sdcard/Movies')">پوشه Movies</button>
+        </div>
+        <button type="button" class="action-btn btn-add-storage" onclick="submitNewStorage()">+ ثبت و اضافه کردن حافظه</button>
+      </div>
+
+    </div>
+
+  </div>
+
+</div>
+{% endblock %}

@@ -1,0 +1,4 @@
+# Minimal and lightweight dependencies for Termux on Android TV
+# Keep it free of heavy C-extensions for maximum stability and speed
+Flask>=2.3.0
+Werkzeug>=2.3.0

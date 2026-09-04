@@ -1,0 +1,6 @@
+{
+  "name": "Android TV Local Media Server",
+  "description": "Python Flask Local Media Server for Android TV via Termux with direct VLC streaming, HTTP Range requests, and USB storage support.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

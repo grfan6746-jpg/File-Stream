@@ -1,0 +1,151 @@
+{% extends 'base.html' %}
+
+{% block title %}{{ storage.name }} - مرور فایل‌ها{% endblock %}
+
+{% block content %}
+<div class="browser-wrapper">
+
+  <!-- Breadcrumb & Navigation Bar -->
+  <div class="browser-nav-bar">
+    <div class="breadcrumbs-container">
+      <a href="{{ url_for('main.index') }}" class="breadcrumb-item breadcrumb-home">🏠 خانه</a>
+      <span class="breadcrumb-sep">/</span>
+      <a href="{{ url_for('main.browser', storage_name=storage.name) }}" class="breadcrumb-item breadcrumb-storage">
+        {{ storage.name }}
+      </a>
+      {% for crumb in breadcrumbs %}
+        <span class="breadcrumb-sep">/</span>
+        {% if loop.last %}
+          <span class="breadcrumb-item breadcrumb-current">{{ crumb.name }}</span>
+        {% else %}
+          <a href="{{ url_for('main.browser', storage_name=storage.name, path=crumb.path) }}" class="breadcrumb-item">
+            {{ crumb.name }}
+          </a>
+        {% endif %}
+      {% endfor %}
+    </div>
+
+    <div class="browser-actions">
+      {% if current_path %}
+        <button class="action-btn btn-back" onclick="window.history.back()">
+          ⬅ بازگشت به پوشه قبل
+        </button>
+      {% endif %}
+      <div class="sort-dropdown-wrap">
+        <label for="sort-select">مرتب‌سازی:</label>
+        <select id="sort-select" onchange="sortBrowserItems(this.value)">
+          <option value="name-asc">نام (الف تا ی)</option>
+          <option value="name-desc">نام (ی تا الف)</option>
+          <option value="size-desc">حجم (بیشترین)</option>
+          <option value="size-asc">حجم (کمترین)</option>
+          <option value="type">نوع فایل</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  {% if error %}
+    <div class="error-banner">
+      <span class="error-icon">⚠️</span>
+      <div>
+        <h3>خطا در خواندن پوشه</h3>
+        <p>{{ error }}</p>
+      </div>
+    </div>
+  {% else %}
+
+    <!-- Directory & File List -->
+    <div class="items-list-container" id="browser-items-container">
+      
+      <!-- Folders Section -->
+      {% if directories %}
+        <div class="group-heading">📁 پوشه‌ها ({{ directories|length }})</div>
+        <div class="folders-grid">
+          {% for dir in directories %}
+            <a href="{{ url_for('main.browser', storage_name=storage.name, path=dir.path) }}" class="folder-card" data-name="{{ dir.name }}" data-type="dir">
+              <span class="folder-icon">📁</span>
+              <span class="folder-name" title="{{ dir.name }}">{{ dir.name }}</span>
+              <span class="arrow-indicator">◀</span>
+            </a>
+          {% endfor %}
+        </div>
+      {% endif %}
+
+      <!-- Files Section -->
+      <div class="group-heading">🎬 فایل‌های رسانه‌ای ({{ files|length }})</div>
+
+      {% if files %}
+        <div class="files-table-wrapper">
+          <div class="files-grid" id="files-list">
+            {% for file in files %}
+              {% set media_url = url_for('main.stream_media', storage_name=storage.name, file_path=file.path, _external=True) %}
+              <div class="file-card file-type-{{ file.type }}" 
+                   data-name="{{ file.name }}" 
+                   data-size="{{ file.size }}" 
+                   data-type="{{ file.type }}" 
+                   data-ext="{{ file.extension }}"
+                   id="file-item-{{ loop.index }}">
+                <div class="file-card-main">
+                  <div class="file-type-badge type-{{ file.type }}">
+                    {% if file.type == 'video' %}🎬
+                    {% elif file.type == 'audio' %}🎵
+                    {% elif file.type == 'image' %}🖼️
+                    {% else %}📄{% endif %}
+                  </div>
+                  <div class="file-details">
+                    <h4 class="file-title" title="{{ file.name }}">{{ file.name }}</h4>
+                    <div class="file-meta">
+                      <span class="meta-tag tag-ext">{{ file.extension|upper }}</span>
+                      <span class="meta-tag tag-size">{{ file.size_str }}</span>
+                      <span class="meta-tag tag-kind">
+                        {% if file.type == 'video' %}ویدیو (بدون Transcoding)
+                        {% elif file.type == 'audio' %}صوتی
+                        {% elif file.type == 'image' %}تصویر
+                        {% else %}سایر{% endif %}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+
+                <div class="file-controls">
+                  <!-- Open in VLC direct modal button -->
+                  <button 
+                    class="btn-vlc-stream" 
+                    onclick="openVlcModal('{{ file.name|replace("'", "\\'") }}', '{{ media_url }}')"
+                    title="پخش مستقیم در VLC">
+                    <span class="play-icon">▶</span> پخش در VLC
+                  </button>
+
+                  <!-- Quick Copy URL -->
+                  <button 
+                    class="btn-quick-copy" 
+                    onclick="copyText('{{ media_url }}', this)" 
+                    title="کپی لینک استریم">
+                    📋
+                  </button>
+
+                  <!-- QR Code Button -->
+                  <button 
+                    class="btn-quick-qr" 
+                    onclick="openVlcModal('{{ file.name|replace("'", "\\'") }}', '{{ media_url }}')" 
+                    title="مشاهده بارکد QR">
+                    📱 QR
+                  </button>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        </div>
+      {% elif not directories %}
+        <div class="empty-state">
+          <span class="empty-icon">📭</span>
+          <h3>هیچ فایلی در این پوشه یافت نشد</h3>
+          <p>می‌توانید فیلم‌ها، آهنگ‌ها یا عکس‌های خود را در این مسیر قرار دهید.</p>
+        </div>
+      {% endif %}
+
+    </div>
+  {% endif %}
+
+</div>
+{% endblock %}

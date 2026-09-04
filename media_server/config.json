@@ -1,0 +1,34 @@
+{
+  "server_name": "Android TV Media Server",
+  "port": 8080,
+  "host": "0.0.0.0",
+  "authentication": false,
+  "username": "admin",
+  "password": "adminpassword",
+  "secret_key": "termux-tv-media-secret-key-change-me",
+  "show_hidden_files": false,
+  "chunk_size_kb": 1024,
+  "theme": "dark",
+  "storages": [
+    {
+      "name": "Internal Storage",
+      "path": "/sdcard"
+    },
+    {
+      "name": "Movies",
+      "path": "/sdcard/Movies"
+    },
+    {
+      "name": "Download",
+      "path": "/sdcard/Download"
+    },
+    {
+      "name": "Music",
+      "path": "/sdcard/Music"
+    },
+    {
+      "name": "Termux External Storage 1 (USB/SD)",
+      "path": "~/storage/external-1"
+    }
+  ]
+}

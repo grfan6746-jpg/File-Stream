@@ -1,0 +1,158 @@
+{% extends 'base.html' %}
+
+{% block title %}داشبورد - {{ server_name }}{% endblock %}
+
+{% block content %}
+<div class="dashboard-wrapper">
+
+  <!-- Top Server Info Banner -->
+  <section class="server-status-card" id="server-status-card">
+    <div class="server-info-primary">
+      <div class="status-indicator-box">
+        <span class="live-pulse"></span>
+        <span class="server-badge-label">سرور محلی فعال است</span>
+      </div>
+      <h1 class="hero-title">{{ server_name }}</h1>
+      <p class="hero-subtitle">استریم مستقیم فایل‌های ویدیویی، صوتی و تصویری تلویزیون و حافظه‌های USB به VLC در گوشی</p>
+
+      <div class="ip-info-grid">
+        <div class="info-pill">
+          <span class="info-label">آدرس IP تلویزیون:</span>
+          <span class="info-value" id="server-ip-val">{{ tv_ip }}</span>
+          <button class="mini-copy-btn" onclick="copyText('{{ tv_ip }}', this)">کپی</button>
+        </div>
+        <div class="info-pill">
+          <span class="info-label">پورت:</span>
+          <span class="info-value">{{ port }}</span>
+        </div>
+        <div class="info-pill">
+          <span class="info-label">آدرس وب سرور:</span>
+          <a href="http://{{ tv_ip }}:{{ port }}/" target="_blank" class="info-value link-val">http://{{ tv_ip }}:{{ port }}/</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick QR Code to open Server on Phone -->
+    <div class="server-qr-box">
+      <div class="qr-preview-wrapper" id="server-web-qr"></div>
+      <span class="qr-caption">اسکن جهت ورود سریع با گوشی</span>
+    </div>
+  </section>
+
+  <!-- Global File Search -->
+  <section class="search-section">
+    <div class="search-bar-card">
+      <div class="search-input-wrap">
+        <span class="search-icon">🔍</span>
+        <input 
+          type="text" 
+          id="global-search-input" 
+          placeholder="جستجوی فیلم، موسیقی یا عکس در تمام حافظه‌ها (مثال: Avatar یا Song)..." 
+          onkeydown="if(event.key === 'Enter') performSearch()"
+        />
+        <button class="search-action-btn" onclick="performSearch()">جستجو</button>
+      </div>
+      <div id="search-results-box" class="search-results-dropdown hidden">
+        <div class="results-header">
+          <span id="results-count">۰ نتیجه</span>
+          <button class="close-results-btn" onclick="closeSearchResults()">&times;</button>
+        </div>
+        <div id="search-items-list" class="results-list"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- Storages Header & Refresh -->
+  <section class="storages-section">
+    <div class="section-title-bar">
+      <div>
+        <h2 class="section-heading">💾 حافظه‌ها و درایوهای متصل</h2>
+        <p class="section-subtext">حافظه داخلی تلویزیون، پوشه‌های اشتراکی و فلش/هاردهای USB</p>
+      </div>
+      <div class="action-buttons-group">
+        <button class="action-btn btn-refresh" id="btn-refresh-storages" onclick="refreshStorages()">
+          <span class="refresh-icon">🔄</span> بروزرسانی حافظه‌ها و USB
+        </button>
+      </div>
+    </div>
+
+    <div class="storages-grid" id="storages-grid">
+      {% for storage in storages %}
+      <div class="storage-card {% if not storage.stats.accessible %}storage-card-offline{% endif %}" id="storage-card-{{ loop.index }}">
+        <div class="storage-card-header">
+          <div class="storage-icon-title">
+            <span class="storage-type-icon">
+              {% if 'USB' in storage.name or 'external' in storage.path %}💾{% elif 'Movie' in storage.name %}🎬{% elif 'Music' in storage.name %}🎵{% else %}📁{% endif %}
+            </span>
+            <div>
+              <h3 class="storage-name">{{ storage.name }}</h3>
+              <span class="storage-path-badge" title="{{ storage.resolved_path }}">{{ storage.path }}</span>
+            </div>
+          </div>
+          <span class="storage-status-chip {% if storage.stats.accessible %}chip-online{% else %}chip-offline{% endif %}">
+            {% if storage.stats.accessible %}آماده دسترسی{% else %}عدم دسترسی / جدا شده{% endif %}
+          </span>
+        </div>
+
+        {% if storage.stats.accessible %}
+        <div class="storage-usage-stats">
+          <div class="progress-bar-track">
+            <div class="progress-bar-fill" style="width: {{ storage.stats.percent_used }}%;"></div>
+          </div>
+          <div class="usage-text-row">
+            <span>مصرف شده: {{ storage.stats.used_str }} ({{ storage.stats.percent_used }}%)</span>
+            <span>آزاد: {{ storage.stats.free_str }} / کل: {{ storage.stats.total_str }}</span>
+          </div>
+        </div>
+        <div class="storage-card-footer">
+          <a href="{{ url_for('main.browser', storage_name=storage.name) }}" class="enter-storage-btn" id="enter-storage-{{ loop.index }}">
+            📂 مشاهده و پخش فایل‌ها
+          </a>
+        </div>
+        {% else %}
+        <div class="storage-error-alert">
+          <span>⚠️ {{ storage.stats.error|default('این مسیر متصل نیست یا در Termux مجوز دسترسی ندارد.') }}</span>
+        </div>
+        <div class="storage-card-footer">
+          <button class="enter-storage-btn disabled-btn" disabled>غیرقابل دسترس</button>
+        </div>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <!-- Help & VLC Guide Box -->
+  <section class="vlc-guide-card">
+    <div class="guide-header">
+      <span class="vlc-cone-icon">Cone</span>
+      <h3>نحوه استفاده در VLC گوشی Android</h3>
+    </div>
+    <div class="guide-steps">
+      <div class="guide-step">
+        <div class="step-num">۱</div>
+        <p>گوشی و Android TV را به <strong>یک شبکه Wi-Fi یکسان</strong> متصل کنید.</p>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">۲</div>
+        <p>از لیست بالا وارد حافظه یا پوشه فیلم خود شده و روی دکمه <strong>«▶ پخش در VLC»</strong> کلیک کنید.</p>
+      </div>
+      <div class="guide-step">
+        <div class="step-num">۳</div>
+        <p>می‌توانید مستقیم روی باز کردن کلیک کنید یا QR Code را با گوشی اسکن و لینک را در منوی <strong>Stream</strong> داخل VLC Paste کنید.</p>
+      </div>
+    </div>
+  </section>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    // Generate QR Code for opening Web UI on mobile
+    const serverUrl = window.location.origin + '/';
+    generateQRCode('server-web-qr', serverUrl, 130);
+  });
+</script>
+{% endblock %}

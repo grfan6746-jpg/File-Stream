@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}{{ server_name|default('Local Media Server') }}{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body class="theme-dark">
+  <header class="app-header">
+    <div class="header-container">
+      <div class="brand">
+        <a href="{{ url_for('main.index') }}" class="brand-link" id="brand-link">
+          <span class="tv-icon">📺</span>
+          <span class="server-title">{{ server_name|default('Android TV Media Server') }}</span>
+        </a>
+        <span class="status-badge status-online">
+          <span class="status-dot"></span> آنلاین
+        </span>
+      </div>
+
+      <nav class="nav-links">
+        <a href="{{ url_for('main.index') }}" class="nav-btn" id="nav-home">🏠 خانه</a>
+        <a href="{{ url_for('main.settings') }}" class="nav-btn" id="nav-settings">⚙️ تنظیمات</a>
+        {% if session.get('authenticated') %}
+          <a href="{{ url_for('main.logout') }}" class="nav-btn nav-btn-logout" id="nav-logout">خروج</a>
+        {% endif %}
+      </nav>
+    </div>
+  </header>
+
+  <main class="main-content">
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="app-footer">
+    <div class="footer-container">
+      <p>Android TV Local Media Server &bull; طراحی شده ویژه Termux بدون Transcoding و با پشتیبانی کامل HTTP Range در VLC</p>
+    </div>
+  </footer>
+
+  <!-- Reusable QR Code & Link Modal -->
+  <div id="vlc-modal" class="modal-backdrop hidden" onclick="closeModal(event)">
+    <div class="modal-card" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 id="modal-title">پخش در VLC</h3>
+        <button class="close-btn" onclick="closeModalDirect()" aria-label="بستن">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p class="modal-file-name" id="modal-file-name"></p>
+        
+        <div class="qr-container">
+          <div id="modal-qr-canvas" class="qr-box"></div>
+          <span class="qr-hint">اسکن با دوربین گوشی جهت دریافت لینک مستقیم</span>
+        </div>
+
+        <div class="url-copy-box">
+          <input type="text" id="modal-stream-url" readonly />
+          <button class="action-btn btn-copy" onclick="copyStreamUrl()" id="btn-copy-url">📋 کپی لینک</button>
+        </div>
+
+        <div class="modal-actions">
+          <a id="modal-vlc-btn" href="#" class="vlc-action-btn primary-vlc">
+            ▶ باز کردن مستقیم در اپلیکیشن VLC
+          </a>
+          <a id="modal-intent-btn" href="#" class="vlc-action-btn secondary-intent">
+            🚀 باز کردن از طریق Android Intent
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+  {% block scripts %}{% endblock %}
+</body>
+</html>
