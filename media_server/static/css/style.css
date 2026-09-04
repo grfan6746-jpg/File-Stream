@@ -1153,3 +1153,239 @@ input:checked + .slider:before {
   color: var(--text-muted);
   margin-top: 2rem;
 }
+
+/* In-Browser Stream & Player Styles */
+.btn-browser-stream {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  background-color: #f59e0b;
+  color: #000000;
+  font-weight: 700;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.8rem;
+  transition: background-color 0.15s ease, transform 0.1s ease;
+}
+
+.btn-browser-stream:hover {
+  background-color: #d97706;
+  transform: translateY(-1px);
+}
+
+.player-page-wrapper {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 1.5rem;
+}
+
+.player-top-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+.player-breadcrumb {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+}
+
+.player-breadcrumb .breadcrumb-item {
+  color: var(--text-muted);
+  text-decoration: none;
+}
+
+.player-breadcrumb .breadcrumb-item:hover {
+  color: #f59e0b;
+}
+
+.player-breadcrumb .breadcrumb-current {
+  color: #f59e0b;
+  font-weight: 700;
+}
+
+.player-quick-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.btn-back-folder {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: var(--bg-secondary);
+  color: var(--text-main);
+  border: 1px solid var(--border-color);
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  text-decoration: none;
+  font-size: 0.8rem;
+}
+
+.btn-vlc-switch {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  background-color: #334155;
+  color: #f8fafc;
+  border: 1px solid #475569;
+  padding: 0.45rem 0.85rem;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.8rem;
+}
+
+.btn-vlc-switch:hover {
+  background-color: #475569;
+}
+
+.video-stage-container {
+  background-color: #000000;
+  border: 1px solid var(--border-color);
+  border-radius: 16px;
+  overflow: hidden;
+  box-shadow: 0 20px 35px -10px rgba(0, 0, 0, 0.5);
+  margin-bottom: 1.5rem;
+}
+
+.video-aspect-box {
+  width: 100%;
+  min-height: 420px;
+  background-color: #000000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.media-element {
+  width: 100%;
+  max-height: 65vh;
+  object-fit: contain;
+  background-color: #000;
+  outline: none;
+}
+
+.player-custom-toolbar {
+  background-color: #111111;
+  border-top: 1px solid #262626;
+  padding: 0.75rem 1.25rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.toolbar-left, .toolbar-right {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  flex-wrap: wrap;
+}
+
+.stream-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.75rem;
+  color: #10b981;
+}
+
+.dot-pulse {
+  width: 8px;
+  height: 8px;
+  background-color: #10b981;
+  border-radius: 50%;
+  animation: pulse 1.5s infinite;
+}
+
+.speed-dropdown {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.3rem 0.5rem;
+  font-size: 0.75rem;
+  outline: none;
+}
+
+.tool-btn {
+  background-color: #1f2937;
+  color: #e5e7eb;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.tool-btn:hover {
+  background-color: #374151;
+  color: #ffffff;
+}
+
+.btn-fullscreen {
+  background-color: #f59e0b;
+  color: #000;
+  font-weight: 700;
+  border-color: #d97706;
+}
+
+.btn-fullscreen:hover {
+  background-color: #d97706;
+}
+
+.player-info-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+  gap: 1.25rem;
+}
+
+.info-card {
+  background-color: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 12px;
+  padding: 1.25rem;
+}
+
+.info-card h4 {
+  font-size: 0.95rem;
+  margin-bottom: 0.75rem;
+  color: #f59e0b;
+}
+
+.shortcuts-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+.shortcut-tag {
+  background-color: #111827;
+  border: 1px solid #374151;
+  border-radius: 6px;
+  padding: 0.25rem 0.5rem;
+  font-size: 0.75rem;
+}
+
+kbd {
+  background-color: #374151;
+  border-radius: 4px;
+  padding: 0.1rem 0.35rem;
+  font-family: monospace;
+}
+
+.info-desc {
+  font-size: 0.8rem;
+  color: var(--text-muted);
+  line-height: 1.6;
+}
+

@@ -174,38 +174,46 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
                   )}
                 </div>
 
-                <div className="mt-4 flex items-center gap-2">
-                  <button
-                    onClick={() => onOpenFileModal(file)}
-                    className="flex-1 py-2 bg-amber-500/10 text-amber-500 border border-amber-500/20 rounded-lg text-xs font-bold hover:bg-amber-500 hover:text-black transition-all flex items-center justify-center gap-1.5"
-                  >
-                    <Play className="h-3.5 w-3.5 fill-current" />
-                    پخش در VLC
-                  </button>
+                {/* Action Buttons in Grid View */}
+                <div className="mt-4 flex flex-col gap-2">
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => onPlayInBrowser(file)}
+                      className="flex-1 py-2 bg-amber-500 hover:bg-amber-400 text-black font-bold rounded-xl text-xs transition-all flex items-center justify-center gap-1.5 shadow-md shadow-amber-500/10 active:scale-95"
+                      title="پخش آنلاین و مستقیم ویدیو در مرورگر"
+                    >
+                      <Tv className="h-3.5 w-3.5" />
+                      پخش در مرورگر
+                    </button>
+                    <button
+                      onClick={() => onOpenFileModal(file)}
+                      className="flex-1 py-2 bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 rounded-xl text-xs font-semibold transition-all flex items-center justify-center gap-1.5 active:scale-95"
+                      title="پخش در اپلیکیشن VLC"
+                    >
+                      <Play className="h-3.5 w-3.5 fill-current text-amber-400" />
+                      در VLC
+                    </button>
+                  </div>
 
-                  <button
-                    onClick={() => onOpenFileModal(file)}
-                    className="w-10 h-8 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg flex items-center justify-center text-xs text-gray-300 transition-colors"
-                    title="QR Code"
-                  >
-                    📱
-                  </button>
+                  <div className="flex items-center gap-1.5">
+                    <button
+                      onClick={() => onOpenFileModal(file)}
+                      className="flex-1 h-7 bg-gray-800/80 hover:bg-gray-700 border border-gray-700/80 rounded-lg flex items-center justify-center text-[11px] text-gray-300 transition-colors gap-1"
+                      title="اسکن کد QR با گوشی"
+                    >
+                      <QrCode className="h-3 w-3 text-amber-400" />
+                      <span>بارکد QR</span>
+                    </button>
 
-                  <button
-                    onClick={() => handleCopyLink(file)}
-                    className="w-10 h-8 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg flex items-center justify-center text-xs text-gray-300 transition-colors"
-                    title="کپی لینک"
-                  >
-                    {copiedId === file.id ? <Check className="h-3.5 w-3.5 text-green-400" /> : <Copy className="h-3.5 w-3.5" />}
-                  </button>
-
-                  <button
-                    onClick={() => onPlayInBrowser(file)}
-                    className="w-10 h-8 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg flex items-center justify-center text-xs text-gray-300 transition-colors"
-                    title="پیش‌نمایش در مرورگر"
-                  >
-                    <Tv className="h-3.5 w-3.5" />
-                  </button>
+                    <button
+                      onClick={() => handleCopyLink(file)}
+                      className="flex-1 h-7 bg-gray-800/80 hover:bg-gray-700 border border-gray-700/80 rounded-lg flex items-center justify-center text-[11px] text-gray-300 transition-colors gap-1"
+                      title="کپی آدرس استریم"
+                    >
+                      {copiedId === file.id ? <Check className="h-3 w-3 text-green-400" /> : <Copy className="h-3 w-3" />}
+                      <span>{copiedId === file.id ? 'کپی شد' : 'کپی لینک'}</span>
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
@@ -247,20 +255,30 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
                   </div>
                 </div>
 
-                {/* Action Buttons */}
+                {/* Action Buttons in List View */}
                 <div className="flex w-full sm:w-auto items-center justify-end gap-2 shrink-0">
                   <button
-                    onClick={() => onOpenFileModal(file)}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black px-4 py-2 text-xs font-bold transition-all shadow-md shadow-amber-500/10"
+                    onClick={() => onPlayInBrowser(file)}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black px-3.5 py-2 text-xs font-bold transition-all shadow-md shadow-amber-500/10 active:scale-95"
+                    title="پخش آنلاین و مستقیم ویدیو در مرورگر"
                   >
-                    <Play className="h-3.5 w-3.5 fill-black" />
-                    پخش در VLC
+                    <Tv className="h-3.5 w-3.5" />
+                    پخش در مرورگر
+                  </button>
+
+                  <button
+                    onClick={() => onOpenFileModal(file)}
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-2 text-xs font-semibold transition-all active:scale-95"
+                    title="پخش در اپلیکیشن VLC"
+                  >
+                    <Play className="h-3.5 w-3.5 fill-current text-amber-400" />
+                    در VLC
                   </button>
 
                   <button
                     onClick={() => onOpenFileModal(file)}
                     className="rounded-xl border border-gray-700 bg-gray-800 p-2 text-gray-300 hover:bg-gray-700 transition-colors"
-                    title="نمایش QR Code"
+                    title="نمایش بارکد QR"
                   >
                     <QrCode className="h-4 w-4 text-amber-400" />
                   </button>
@@ -268,17 +286,9 @@ export const BrowserView: React.FC<BrowserViewProps> = ({
                   <button
                     onClick={() => handleCopyLink(file)}
                     className="rounded-xl border border-gray-700 bg-gray-800 p-2 text-gray-300 hover:bg-gray-700 transition-colors"
-                    title="کپی لینک استریم"
+                    title="کپی آدرس استریم"
                   >
                     {copiedId === file.id ? <Check className="h-4 w-4 text-green-400" /> : <Copy className="h-4 w-4" />}
-                  </button>
-
-                  <button
-                    onClick={() => onPlayInBrowser(file)}
-                    className="rounded-xl border border-gray-700 bg-gray-800 p-2 text-gray-300 hover:bg-gray-700 transition-colors"
-                    title="پیش‌نمایش در مرورگر"
-                  >
-                    <Tv className="h-4 w-4" />
                   </button>
                 </div>
 

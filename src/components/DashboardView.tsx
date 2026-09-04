@@ -14,6 +14,7 @@ interface DashboardViewProps {
   files: MediaFile[];
   onSelectStorage: (storage: StorageItem) => void;
   onOpenFileModal: (file: MediaFile) => void;
+  onPlayInBrowser: (file: MediaFile) => void;
   onRefreshStorages: () => void;
   isRefreshing: boolean;
 }
@@ -26,6 +27,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   files,
   onSelectStorage,
   onOpenFileModal,
+  onPlayInBrowser,
   onRefreshStorages,
   isRefreshing,
 }) => {
@@ -182,12 +184,30 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
                       </div>
                     </div>
 
-                    <button
-                      onClick={() => onOpenFileModal(file)}
-                      className="flex items-center gap-1.5 rounded-xl bg-amber-500/10 text-amber-500 border border-amber-500/20 px-3.5 py-1.5 text-xs font-bold hover:bg-amber-500 hover:text-black transition-all shrink-0"
-                    >
-                      <Play className="h-3 w-3 fill-current" /> پخش در VLC
-                    </button>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <button
+                        onClick={() => {
+                          setSearchOpen(false);
+                          onPlayInBrowser(file);
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-black px-3 py-1.5 text-xs font-bold transition-all shadow-md shadow-amber-500/10 active:scale-95"
+                        title="پخش مستقیم در مرورگر"
+                      >
+                        <Tv className="h-3.5 w-3.5" />
+                        پخش در مرورگر
+                      </button>
+
+                      <button
+                        onClick={() => {
+                          setSearchOpen(false);
+                          onOpenFileModal(file);
+                        }}
+                        className="flex items-center gap-1.5 rounded-xl bg-gray-800 hover:bg-gray-700 text-gray-200 border border-gray-700 px-3 py-1.5 text-xs font-semibold transition-all active:scale-95"
+                        title="پخش در اپلیکیشن VLC"
+                      >
+                        <Play className="h-3 w-3 fill-current text-amber-400" /> در VLC
+                      </button>
+                    </div>
                   </div>
                 ))}
               </div>

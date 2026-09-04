@@ -108,12 +108,22 @@
                 </div>
 
                 <div class="file-controls">
+                  <!-- Play in Browser button for video / audio -->
+                  {% if file.type in ['video', 'audio'] %}
+                    <a 
+                      href="{{ url_for('main.player', storage_name=storage.name, file_path=file.path) }}"
+                      class="btn-browser-stream"
+                      title="پخش آنلاین در مرورگر">
+                      <span class="play-icon">🖥️</span> پخش در مرورگر
+                    </a>
+                  {% endif %}
+
                   <!-- Open in VLC direct modal button -->
                   <button 
                     class="btn-vlc-stream" 
                     onclick="openVlcModal('{{ file.name|replace("'", "\\'") }}', '{{ media_url }}')"
                     title="پخش مستقیم در VLC">
-                    <span class="play-icon">▶</span> پخش در VLC
+                    <span class="play-icon">▶</span> در VLC
                   </button>
 
                   <!-- Quick Copy URL -->

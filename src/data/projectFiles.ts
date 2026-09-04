@@ -159,6 +159,45 @@ def stream_file_with_range(file_path, chunk_size=1024 * 1024):
     return Response(partial_generator(), status=206, headers=headers)`
   },
   {
+    path: 'media_server/server/routes.py',
+    name: 'routes.py',
+    category: 'python',
+    description: 'مسیرهای وب، مرورگر پوشه‌ها، استریم مستقیم، روت اختصاصی /play برای پخش آنلاین در مرورگر و APIها',
+    content: `from flask import Blueprint, render_template, request, abort, url_for, jsonify
+import urllib.parse
+import os
+
+main_bp = Blueprint('main', __name__)
+
+@main_bp.route('/play/<storage_name>/<path:file_path>')
+def player(storage_name, file_path):
+    """In-browser HTML5 Video / Audio Player with zero transcoding."""
+    unquoted = urllib.parse.unquote(file_path)
+    file_name = os.path.basename(unquoted)
+    stream_url = url_for('main.stream_media', storage_name=storage_name, file_path=file_path, _external=True)
+    return render_template('player.html', file_name=file_name, stream_url=stream_url)`
+  },
+  {
+    path: 'media_server/templates/player.html',
+    name: 'player.html',
+    category: 'template',
+    description: 'قالب اختصاصی HTML5 Video Player مرورگر با پشتیبانی از کلیدهای میانبر، تغییر سرعت، تصویر در تصویر و سوئیچ به VLC',
+    content: `{% extends 'base.html' %}
+{% block content %}
+<div class="player-page-wrapper">
+  <h2>{{ file_name }}</h2>
+  <video id="web-video-player" controls autoplay class="media-element">
+    <source src="{{ stream_url }}">
+  </video>
+  <div class="player-custom-toolbar">
+    <button onclick="skipMedia(-10)">⏪ -10s</button>
+    <button onclick="skipMedia(10)">⏩ +10s</button>
+    <button onclick="toggleFullscreen()">⛶ تمام‌صفحه</button>
+  </div>
+</div>
+{% endblock %}`
+  },
+  {
     path: 'media_server/server/storage.py',
     name: 'storage.py',
     category: 'python',

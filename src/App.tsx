@@ -237,6 +237,7 @@ export default function App() {
             files={files}
             onSelectStorage={handleSelectStorage}
             onOpenFileModal={(f) => setVlcModalFile(f)}
+            onPlayInBrowser={(f) => setBrowserPlayerFile(f)}
             onRefreshStorages={handleRefreshStorages}
             isRefreshing={isRefreshing}
           />
@@ -286,6 +287,10 @@ export default function App() {
         <MediaPlayerModal
           file={browserPlayerFile}
           onClose={() => setBrowserPlayerFile(null)}
+          onSwitchToVlc={(f) => {
+            setBrowserPlayerFile(null);
+            setVlcModalFile(f);
+          }}
         />
       )}
 

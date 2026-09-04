@@ -146,9 +146,10 @@ export const VlcModal: React.FC<VlcModalProps> = ({
 
             <button
               onClick={() => onPlayInBrowser(file)}
-              className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/30 bg-amber-500/10 hover:bg-amber-500/20 px-3 py-2.5 text-xs font-semibold text-amber-400 transition-colors"
+              className="flex items-center justify-center gap-1.5 rounded-xl border border-amber-500/40 bg-amber-500/15 hover:bg-amber-500/25 px-3 py-2.5 text-xs font-bold text-amber-300 transition-colors"
+              title="پخش آنلاین و مستقیم در پخش‌کننده مرورگر بدون نیاز به نصب نرم‌افزار"
             >
-              <Tv className="h-3.5 w-3.5" /> پیش‌نمایش در مرورگر
+              <Tv className="h-3.5 w-3.5 text-amber-400" /> پخش مستقیم در مرورگر
             </button>
           </div>
         </div>

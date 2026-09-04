@@ -1,0 +1,196 @@
+{% extends 'base.html' %}
+
+{% block title %}پخش آنلاین: {{ file_name }} - {{ server_name }}{% endblock %}
+
+{% block content %}
+<div class="player-page-wrapper" dir="rtl">
+
+  <!-- Top Navigation & Details -->
+  <div class="player-top-bar">
+    <div class="player-breadcrumb">
+      <a href="{{ url_for('main.index') }}" class="breadcrumb-item">🏠 خانه</a>
+      <span class="sep">/</span>
+      <a href="{{ url_for('main.browser', storage_name=storage.name) }}" class="breadcrumb-item">{{ storage.name }}</a>
+      {% if back_folder %}
+        <span class="sep">/</span>
+        <a href="{{ url_for('main.browser', storage_name=storage.name, path=back_folder) }}" class="breadcrumb-item">{{ back_folder }}</a>
+      {% endif %}
+      <span class="sep">/</span>
+      <span class="breadcrumb-current">{{ file_name }}</span>
+    </div>
+
+    <div class="player-quick-actions">
+      <a href="{{ url_for('main.browser', storage_name=storage.name, path=back_folder) }}" class="btn-back-folder">
+        ⬅ بازگشت به پوشه
+      </a>
+      <button class="btn-vlc-switch" onclick="openVlcModal('{{ file_name|replace("'", "\\'") }}', '{{ stream_url }}')">
+        ▶ پخش در اپلیکیشن VLC
+      </button>
+    </div>
+  </div>
+
+  <!-- Video Player Stage Container -->
+  <div class="video-stage-container">
+    <div class="video-aspect-box" id="player-container">
+      {% if file_type == 'video' %}
+        <video 
+          id="web-video-player"
+          controls 
+          autoplay 
+          playsinline 
+          preload="metadata"
+          class="media-element"
+        >
+          <source src="{{ stream_url }}">
+          مرورگر شما از تگ ویدیو پشتیبانی نمی‌کند.
+        </video>
+      {% elif file_type == 'audio' %}
+        <div class="audio-player-display">
+          <div class="audio-art-disc">
+            <span class="audio-disc-icon">🎵</span>
+          </div>
+          <h2 class="audio-file-title">{{ file_name }}</h2>
+          <p class="audio-meta">{{ size_str }} &bull; {{ extension|upper }} Audio Stream</p>
+          <audio 
+            id="web-video-player"
+            controls 
+            autoplay 
+            class="audio-element"
+          >
+            <source src="{{ stream_url }}">
+            مرورگر شما از تگ صوت پشتیبانی نمی‌کند.
+          </audio>
+        </div>
+      {% else %}
+        <div class="generic-file-view">
+          <p>این فایل ویدیویی یا صوتی نیست.</p>
+          <a href="{{ stream_url }}" download class="btn-download">دانلود فایل ({{ size_str }})</a>
+        </div>
+      {% endif %}
+    </div>
+
+    <!-- Quick Control Bar / Playback Speeds & Fullscreen -->
+    <div class="player-custom-toolbar">
+      <div class="toolbar-left">
+        <span class="stream-badge">
+          <span class="dot-pulse"></span>
+          استریم مستقیم HTTP Range (RFC 7233)
+        </span>
+        <span class="meta-tag">{{ extension|upper }}</span>
+        <span class="meta-tag">{{ size_str }}</span>
+      </div>
+
+      <div class="toolbar-right">
+        <label for="playback-speed-select" class="speed-label">سرعت پخش:</label>
+        <select id="playback-speed-select" onchange="changePlaybackRate(this.value)" class="speed-dropdown">
+          <option value="0.5">0.5x</option>
+          <option value="0.75">0.75x</option>
+          <option value="1" selected>1.0x (معمولی)</option>
+          <option value="1.25">1.25x</option>
+          <option value="1.5">1.5x</option>
+          <option value="2">2.0x</option>
+        </select>
+
+        <button onclick="skipMedia(-10)" class="tool-btn" title="۱۰ ثانیه به عقب">⏪ -10s</button>
+        <button onclick="skipMedia(10)" class="tool-btn" title="۱۰ ثانیه به جلو">⏩ +10s</button>
+        <button onclick="togglePiP()" class="tool-btn" title="تصویر در تصویر (PiP)">📺 PiP</button>
+        <button onclick="toggleFullscreen()" class="tool-btn btn-fullscreen" title="تمام صفحه">⛶ تمام‌صفحه</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Shortcuts & Tech Specs -->
+  <div class="player-info-grid">
+    <div class="info-card">
+      <h4>⌨️ کلیدهای میانبر (کیبورد یا ریموت تلویزیون)</h4>
+      <div class="shortcuts-list">
+        <span class="shortcut-tag"><kbd>Space</kbd> یا <kbd>Enter</kbd>: پخش / توقف</span>
+        <span class="shortcut-tag"><kbd>▶</kbd> / <kbd>◀</kbd>: ۱۰ ثانیه عقب / جلو</span>
+        <span class="shortcut-tag"><kbd>▲</kbd> / <kbd>▼</kbd>: افزایش / کاهش صدا</span>
+        <span class="shortcut-tag"><kbd>F</kbd>: تمام‌صفحه</span>
+        <span class="shortcut-tag"><kbd>M</kbd>: قطع / وصل صدا</span>
+      </div>
+    </div>
+
+    <div class="info-card">
+      <h4>⚡ مزیت پخش مستقیم در مرورگر</h4>
+      <p class="info-desc">
+        این فایل بدون هیچ‌گونه فشرده‌سازی مجدد (Zero Transcoding) مستقیماً توسط پردازنده سخت‌افزاری دستگاه شما رمزگشایی می‌شود. 
+        بنابراین بار پردازشی روی Android TV برابر <strong>۰ درصد</strong> است.
+      </p>
+    </div>
+  </div>
+
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+  const videoEl = document.getElementById('web-video-player');
+
+  function changePlaybackRate(rate) {
+    if (videoEl) {
+      videoEl.playbackRate = parseFloat(rate);
+    }
+  }
+
+  function skipMedia(seconds) {
+    if (videoEl) {
+      videoEl.currentTime = Math.max(0, videoEl.currentTime + seconds);
+    }
+  }
+
+  function toggleFullscreen() {
+    const container = document.getElementById('player-container') || videoEl;
+    if (!document.fullscreenElement) {
+      if (container.requestFullscreen) {
+        container.requestFullscreen();
+      } else if (videoEl && videoEl.webkitEnterFullscreen) {
+        videoEl.webkitEnterFullscreen();
+      }
+    } else {
+      if (document.exitFullscreen) {
+        document.exitFullscreen();
+      }
+    }
+  }
+
+  function togglePiP() {
+    if (document.pictureInPictureElement) {
+      document.exitPictureInPicture();
+    } else if (videoEl && videoEl.requestPictureInPicture) {
+      videoEl.requestPictureInPicture();
+    }
+  }
+
+  // Keyboard navigation
+  document.addEventListener('keydown', (e) => {
+    // Avoid interfering if typing in input
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'SELECT') return;
+
+    if (e.code === 'Space') {
+      e.preventDefault();
+      if (videoEl) {
+        if (videoEl.paused) videoEl.play();
+        else videoEl.pause();
+      }
+    } else if (e.code === 'ArrowLeft') {
+      e.preventDefault();
+      skipMedia(-10);
+    } else if (e.code === 'ArrowRight') {
+      e.preventDefault();
+      skipMedia(10);
+    } else if (e.code === 'ArrowUp') {
+      e.preventDefault();
+      if (videoEl) videoEl.volume = Math.min(1, videoEl.volume + 0.1);
+    } else if (e.code === 'ArrowDown') {
+      e.preventDefault();
+      if (videoEl) videoEl.volume = Math.max(0, videoEl.volume - 0.1);
+    } else if (e.key === 'f' || e.key === 'F') {
+      toggleFullscreen();
+    } else if (e.key === 'm' || e.key === 'M') {
+      if (videoEl) videoEl.muted = !videoEl.muted;
+    }
+  });
+</script>
+{% endblock %}

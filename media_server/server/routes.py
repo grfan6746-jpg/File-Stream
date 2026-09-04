@@ -125,6 +125,53 @@ def browser(storage_name):
         theme=cfg.get('theme', 'dark')
     )
 
+@main_bp.route('/play/<storage_name>/<path:file_path>')
+@login_required
+def player(storage_name, file_path):
+    """In-browser HTML5 Video / Audio Player with zero transcoding."""
+    cfg = get_config()
+    storage = find_storage(storage_name)
+    if not storage:
+        abort(404, description=f"Storage '{storage_name}' not found.")
+
+    resolved_base = resolve_storage_path(storage['path'])
+    unquoted_path = urllib.parse.unquote(file_path)
+    target_abs = os.path.normpath(os.path.join(resolved_base, unquoted_path.lstrip('/\\')))
+
+    if not is_safe_path(resolved_base, target_abs):
+        current_app.media_logger.error(f"Security violation on player: {unquoted_path}")
+        abort(403, description="Access Denied")
+
+    if not os.path.exists(target_abs) or not os.path.isfile(target_abs):
+        abort(404, description="File does not exist or storage disconnected.")
+
+    file_name = os.path.basename(target_abs)
+    file_size = os.path.getsize(target_abs)
+    from .storage import format_size, get_file_type
+    size_str = format_size(file_size)
+    ext = os.path.splitext(file_name)[1].lower().lstrip('.')
+    file_type = get_file_type(ext)
+
+    stream_url = url_for('main.stream_media', storage_name=storage_name, file_path=file_path, _external=True)
+    back_folder = os.path.dirname(unquoted_path).replace('\\', '/')
+
+    return render_template(
+        'player.html',
+        storage=storage,
+        file_name=file_name,
+        file_path=unquoted_path,
+        file_size=file_size,
+        size_str=size_str,
+        file_type=file_type,
+        extension=ext,
+        stream_url=stream_url,
+        back_folder=back_folder,
+        server_ip=get_primary_ip(),
+        port=cfg.get('port', 8080),
+        server_name=cfg.get('server_name', 'Android TV Media Server'),
+        theme=cfg.get('theme', 'dark')
+    )
+
 @main_bp.route('/settings', methods=['GET', 'POST'])
 @login_required
 def settings():
