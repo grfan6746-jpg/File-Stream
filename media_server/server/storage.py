@@ -17,6 +17,10 @@ def get_media_type(filename):
         return 'image'
     return 'other'
 
+def get_file_type(filename):
+    """Alias for get_media_type for compatibility."""
+    return get_media_type(filename)
+
 def format_size(bytes_size):
     """Converts bytes into human-readable format."""
     if bytes_size is None or bytes_size < 0:

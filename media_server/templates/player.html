@@ -23,7 +23,12 @@
       <a href="{{ url_for('main.browser', storage_name=storage.name, path=back_folder) }}" class="btn-back-folder">
         ⬅ بازگشت به پوشه
       </a>
-      <button class="btn-vlc-switch" onclick="openVlcModal('{{ file_name|replace("'", "\\'") }}', '{{ stream_url }}')">
+      <button 
+        type="button"
+        id="btn-vlc-switch" 
+        class="btn-vlc-switch" 
+        data-filename="{{ file_name }}" 
+        data-stream-url="{{ stream_url }}">
         ▶ پخش در اپلیکیشن VLC
       </button>
     </div>
@@ -127,6 +132,17 @@
 {% block scripts %}
 <script>
   const videoEl = document.getElementById('web-video-player');
+  const vlcBtn = document.getElementById('btn-vlc-switch');
+
+  if (vlcBtn) {
+    vlcBtn.addEventListener('click', () => {
+      const fn = vlcBtn.getAttribute('data-filename') || '';
+      const url = vlcBtn.getAttribute('data-stream-url') || '';
+      if (typeof openVlcModal === 'function') {
+        openVlcModal(fn, url);
+      }
+    });
+  }
 
   function changePlaybackRate(rate) {
     if (videoEl) {

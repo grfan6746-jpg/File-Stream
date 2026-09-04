@@ -112,6 +112,8 @@
                   {% if file.type in ['video', 'audio'] %}
                     <a 
                       href="{{ url_for('main.player', storage_name=storage.name, file_path=file.path) }}"
+                      target="_blank"
+                      rel="noopener noreferrer"
                       class="btn-browser-stream"
                       title="پخش آنلاین در مرورگر">
                       <span class="play-icon">🖥️</span> پخش در مرورگر
@@ -121,7 +123,9 @@
                   <!-- Open in VLC direct modal button -->
                   <button 
                     class="btn-vlc-stream" 
-                    onclick="openVlcModal('{{ file.name|replace("'", "\\'") }}', '{{ media_url }}')"
+                    data-filename="{{ file.name }}"
+                    data-url="{{ media_url }}"
+                    onclick="openVlcModalFromEl(this)"
                     title="پخش مستقیم در VLC">
                     <span class="play-icon">▶</span> در VLC
                   </button>
@@ -137,7 +141,9 @@
                   <!-- QR Code Button -->
                   <button 
                     class="btn-quick-qr" 
-                    onclick="openVlcModal('{{ file.name|replace("'", "\\'") }}', '{{ media_url }}')" 
+                    data-filename="{{ file.name }}"
+                    data-url="{{ media_url }}"
+                    onclick="openVlcModalFromEl(this)" 
                     title="مشاهده بارکد QR">
                     📱 QR
                   </button>

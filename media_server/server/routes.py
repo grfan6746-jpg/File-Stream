@@ -145,32 +145,36 @@ def player(storage_name, file_path):
     if not os.path.exists(target_abs) or not os.path.isfile(target_abs):
         abort(404, description="File does not exist or storage disconnected.")
 
-    file_name = os.path.basename(target_abs)
-    file_size = os.path.getsize(target_abs)
-    from .storage import format_size, get_file_type
-    size_str = format_size(file_size)
-    ext = os.path.splitext(file_name)[1].lower().lstrip('.')
-    file_type = get_file_type(ext)
+    try:
+        file_name = os.path.basename(target_abs)
+        file_size = os.path.getsize(target_abs)
+        from .storage import format_size, get_media_type, get_file_type
+        size_str = format_size(file_size)
+        ext = os.path.splitext(file_name)[1].lower().lstrip('.')
+        file_type = get_media_type(file_name)
 
-    stream_url = url_for('main.stream_media', storage_name=storage_name, file_path=file_path, _external=True)
-    back_folder = os.path.dirname(unquoted_path).replace('\\', '/')
+        stream_url = url_for('main.stream_media', storage_name=storage_name, file_path=file_path, _external=True)
+        back_folder = os.path.dirname(unquoted_path).replace('\\', '/')
 
-    return render_template(
-        'player.html',
-        storage=storage,
-        file_name=file_name,
-        file_path=unquoted_path,
-        file_size=file_size,
-        size_str=size_str,
-        file_type=file_type,
-        extension=ext,
-        stream_url=stream_url,
-        back_folder=back_folder,
-        server_ip=get_primary_ip(),
-        port=cfg.get('port', 8080),
-        server_name=cfg.get('server_name', 'Android TV Media Server'),
-        theme=cfg.get('theme', 'dark')
-    )
+        return render_template(
+            'player.html',
+            storage=storage,
+            file_name=file_name,
+            file_path=unquoted_path,
+            file_size=file_size,
+            size_str=size_str,
+            file_type=file_type,
+            extension=ext,
+            stream_url=stream_url,
+            back_folder=back_folder,
+            server_ip=get_primary_ip(),
+            port=cfg.get('port', 8080),
+            server_name=cfg.get('server_name', 'Android TV Media Server'),
+            theme=cfg.get('theme', 'dark')
+        )
+    except Exception as e:
+        current_app.media_logger.error(f"Error rendering player for {unquoted_path}: {e}", exc_info=True)
+        abort(500, description=f"Player error: {str(e)}")
 
 @main_bp.route('/settings', methods=['GET', 'POST'])
 @login_required

@@ -29,22 +29,29 @@ function openVlcModal(fileName, mediaUrl) {
   const vlcBtn = document.getElementById('modal-vlc-btn');
   const intentBtn = document.getElementById('modal-intent-btn');
 
-  title.textContent = fileName;
-  input.value = mediaUrl;
+  if (title) title.textContent = fileName;
+  if (input) input.value = mediaUrl;
 
   // VLC URL Scheme (vlc://http://...)
-  vlcBtn.href = 'vlc://' + mediaUrl;
+  if (vlcBtn) vlcBtn.href = 'vlc://' + mediaUrl;
 
   // Android Intent URL for direct VLC launch without browser intercept
   // intent://<url_without_http>#Intent;package=org.videolan.vlc;type=video/*;scheme=http;end
-  const noHttp = mediaUrl.replace(/^https?:\/\//, '');
+  const noHttp = (mediaUrl || '').replace(/^https?:\/\//, '');
   const intentUrl = `intent://${noHttp}#Intent;package=org.videolan.vlc;type=video/*;scheme=http;end`;
-  intentBtn.href = intentUrl;
+  if (intentBtn) intentBtn.href = intentUrl;
 
   // Generate QR Code in canvas
   generateQRCode('modal-qr-canvas', mediaUrl, 160);
 
-  modal.classList.remove('hidden');
+  if (modal) modal.classList.remove('hidden');
+}
+
+function openVlcModalFromEl(btn) {
+  if (!btn) return;
+  const fileName = btn.getAttribute('data-filename') || '';
+  const mediaUrl = btn.getAttribute('data-url') || '';
+  openVlcModal(fileName, mediaUrl);
 }
 
 function closeModal(e) {
