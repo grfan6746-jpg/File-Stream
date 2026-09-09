@@ -38,7 +38,7 @@ export default function App() {
       { name: 'Internal Storage', path: '/sdcard' },
       { name: 'Movies', path: '/sdcard/Movies' },
       { name: 'USB Flash Drive', path: '~/storage/external-1' },
-      { name: 'External HDD', path: '/storage/4B7A-9E21' }
+      { name: 'External HDD (17F8-2C26)', path: '/storage/17F8-2C26' }
     ]
   });
 

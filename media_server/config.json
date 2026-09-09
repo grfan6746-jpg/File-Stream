@@ -27,8 +27,12 @@
       "path": "/sdcard/Music"
     },
     {
-      "name": "Termux External Storage 1 (USB/SD)",
+      "name": "External USB Storage 1",
       "path": "~/storage/external-1"
+    },
+    {
+      "name": "External Hard Drive (17F8-2C26)",
+      "path": "/storage/17F8-2C26"
     }
   ]
 }

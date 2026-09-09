@@ -16,7 +16,17 @@ from .network import get_primary_ip, get_all_local_ips
 main_bp = Blueprint('main', __name__)
 
 def get_config():
-    return current_app.config.get('MEDIA_CONFIG', {})
+    cfg = current_app.config.get('MEDIA_CONFIG', {})
+    # Automatically migrate any storage names containing '/' or '\' to prevent URL routing breaks
+    sanitized = False
+    for s in cfg.get('storages', []):
+        raw_name = s.get('name', '')
+        if '/' in raw_name or '\\' in raw_name:
+            s['name'] = raw_name.replace('/', '-').replace('\\', '-').strip()
+            sanitized = True
+    if sanitized:
+        save_config(cfg)
+    return cfg
 
 def save_config(cfg):
     current_app.config['MEDIA_CONFIG'] = cfg
@@ -26,10 +36,30 @@ def save_config(cfg):
             json.dump(cfg, f, indent=2, ensure_ascii=False)
 
 def find_storage(storage_name):
+    if not storage_name:
+        return None
     cfg = get_config()
+    unquoted = urllib.parse.unquote(str(storage_name)).strip()
+    norm = unquoted.replace('/', '-').replace('\\', '-').strip()
+
+    # 1. Exact match
     for s in cfg.get('storages', []):
-        if s['name'] == storage_name:
+        s_name = s.get('name', '').strip()
+        if s_name == storage_name or s_name == unquoted:
             return s
+
+    # 2. Normalized match (ignoring slashes vs hyphens differences)
+    for s in cfg.get('storages', []):
+        s_norm = s.get('name', '').replace('/', '-').replace('\\', '-').strip()
+        if s_norm == norm or s_norm == unquoted:
+            return s
+
+    # 3. Path or UUID match (e.g. matching '/storage/17F8-2C26' or '17F8-2C26')
+    for s in cfg.get('storages', []):
+        s_path = s.get('path', '').strip()
+        if s_path == unquoted or (unquoted and unquoted in s_path):
+            return s
+
     return None
 
 # ============================
@@ -66,7 +96,13 @@ def index():
         theme=cfg.get('theme', 'dark')
     )
 
-@main_bp.route('/browser/<storage_name>')
+@main_bp.route('/browser')
+@main_bp.route('/browser/')
+@login_required
+def browser_index():
+    return redirect(url_for('main.index'))
+
+@main_bp.route('/browser/<path:storage_name>')
 @login_required
 def browser(storage_name):
     cfg = get_config()
@@ -131,6 +167,16 @@ def player(storage_name, file_path):
     """In-browser HTML5 Video / Audio Player with zero transcoding."""
     cfg = get_config()
     storage = find_storage(storage_name)
+    if not storage and '/' in file_path:
+        parts = file_path.split('/')
+        for i in range(len(parts)):
+            candidate_name = storage_name + '/' + '/'.join(parts[:i+1])
+            st = find_storage(candidate_name)
+            if st:
+                storage = st
+                file_path = '/'.join(parts[i+1:])
+                break
+
     if not storage:
         abort(404, description=f"Storage '{storage_name}' not found.")
 
@@ -254,6 +300,16 @@ def logout():
 @main_bp.route('/media/<storage_name>/<path:file_path>')
 def stream_media(storage_name, file_path):
     storage = find_storage(storage_name)
+    if not storage and '/' in file_path:
+        parts = file_path.split('/')
+        for i in range(len(parts)):
+            candidate_name = storage_name + '/' + '/'.join(parts[:i+1])
+            st = find_storage(candidate_name)
+            if st:
+                storage = st
+                file_path = '/'.join(parts[i+1:])
+                break
+
     if not storage:
         current_app.media_logger.warning(f"Stream request for unknown storage: {storage_name}")
         abort(404, description="Storage not found")
@@ -382,16 +438,19 @@ def api_search():
 @login_required
 def api_add_storage():
     data = request.get_json(silent=True) or request.form
-    name = data.get('name', '').strip()
+    raw_name = data.get('name', '').strip()
     path = data.get('path', '').strip()
 
-    if not name or not path:
+    if not raw_name or not path:
         return jsonify({'error': 'Name and path are required'}), 400
+
+    # Sanitize storage name to prevent forward/backward slashes breaking URL routing
+    name = raw_name.replace('/', '-').replace('\\', '-').strip()
 
     cfg = get_config()
     # Check if name already exists
     for s in cfg.get('storages', []):
-        if s['name'] == name:
+        if s['name'] == name or s['name'] == raw_name:
             return jsonify({'error': 'Storage with this name already exists'}), 400
 
     new_storage = {'name': name, 'path': path}
@@ -406,11 +465,15 @@ def api_add_storage():
 def api_remove_storage():
     data = request.get_json(silent=True) or request.form
     name = data.get('name', '').strip()
+    norm = name.replace('/', '-').replace('\\', '-').strip()
 
     cfg = get_config()
     storages = cfg.get('storages', [])
     initial_len = len(storages)
-    cfg['storages'] = [s for s in storages if s['name'] != name]
+    cfg['storages'] = [
+        s for s in storages
+        if s.get('name') != name and s.get('name', '').replace('/', '-').replace('\\', '-').strip() != norm
+    ]
 
     if len(cfg['storages']) < initial_len:
         save_config(cfg)

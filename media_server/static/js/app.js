@@ -288,7 +288,7 @@ function setPathInput(path) {
 function quickAddStorage(name, path) {
   const nameInput = document.getElementById('new_storage_name');
   const pathInput = document.getElementById('new_storage_path');
-  if (nameInput) nameInput.value = name;
+  if (nameInput) nameInput.value = name.replace(/\//g, '-');
   if (pathInput) pathInput.value = path;
   submitNewStorage();
 }
@@ -296,7 +296,8 @@ function quickAddStorage(name, path) {
 function submitNewStorage() {
   const nameInput = document.getElementById('new_storage_name');
   const pathInput = document.getElementById('new_storage_path');
-  const name = nameInput.value.trim();
+  const rawName = nameInput.value.trim();
+  const name = rawName.replace(/\//g, '-');
   const path = pathInput.value.trim();
 
   if (!name || !path) {

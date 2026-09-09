@@ -81,36 +81,76 @@ def detect_potential_usb_storages():
     """
     Scans typical Android / Termux paths where external USB flash drives / HDDs appear:
     1. Termux storage links in ~/storage/ (e.g. ~/storage/external-1, external-2)
-    2. /storage/XXXX-XXXX (Android FAT32 / exFAT mount points)
-    3. /mnt/media_rw/
+    2. /storage/XXXX-XXXX (Android FAT32 / exFAT / NTFS mount points)
+    3. /mnt/media_rw/ (Direct Android hardware mount points)
     """
     candidates = []
+    seen_real_paths = set()
     
-    # Check Termux storage links created by termux-setup-storage
+    # 1. Check Termux storage links created by termux-setup-storage
     home = os.environ.get('HOME', '/data/data/com.termux/files/home')
     termux_storage = os.path.join(home, 'storage')
     if os.path.exists(termux_storage):
-        for entry in os.listdir(termux_storage):
-            if entry.startswith('external-'):
-                full_p = os.path.join(termux_storage, entry)
-                if os.path.exists(full_p):
-                    candidates.append({
-                        'name': f"USB/SD ({entry})",
-                        'path': f"~/storage/{entry}"
-                    })
+        try:
+            for entry in os.listdir(termux_storage):
+                if entry.startswith('external-'):
+                    full_p = os.path.join(termux_storage, entry)
+                    if os.path.exists(full_p):
+                        try:
+                            real_p = os.path.realpath(full_p)
+                            seen_real_paths.add(real_p)
+                            # Extract hardware label/UUID if realpath is e.g. /storage/17F8-2C26
+                            real_id = os.path.basename(real_p) if real_p != full_p else entry
+                            name = f"USB-Drive-{real_id}" if real_id != entry else f"USB-Drive ({entry})"
+                        except Exception:
+                            name = f"USB-Drive ({entry})"
+                        
+                        candidates.append({
+                            'name': name,
+                            'path': f"~/storage/{entry}"
+                        })
+        except Exception:
+            pass
 
-    # Check /storage/XXXX-XXXX (Standard Android external volumes)
+    # 2. Check /storage/XXXX-XXXX (Standard Android external volumes like 17F8-2C26)
     if os.path.exists('/storage'):
         try:
             for item in os.listdir('/storage'):
-                # Android external drives usually have uppercase hex format e.g. 1A2B-3C4D
-                if re.match(r'^[A-Fa-f0-9]{4}-[A-Fa-f0-9]{4}$', item):
-                    p = f"/storage/{item}"
-                    if os.path.exists(p) and os.access(p, os.R_OK):
-                        candidates.append({
-                            'name': f"USB Drive ({item})",
-                            'path': p
-                        })
+                # Ignore Android internal virtual directories
+                if item in ('emulated', 'self', 'knox-emulated', 'enc_user'):
+                    continue
+                p = f"/storage/{item}"
+                try:
+                    if os.path.exists(p) and os.path.isdir(p):
+                        real_p = os.path.realpath(p)
+                        # Check if not already added via Termux symlink
+                        if real_p not in seen_real_paths and not any(c['path'] == p for c in candidates):
+                            seen_real_paths.add(real_p)
+                            candidates.append({
+                                'name': f"Hard-Drive ({item})",
+                                'path': p
+                            })
+                except Exception:
+                    continue
+        except Exception:
+            pass
+
+    # 3. Check /mnt/media_rw/ (Direct Android mount directory for OTG / USB)
+    if os.path.exists('/mnt/media_rw'):
+        try:
+            for item in os.listdir('/mnt/media_rw'):
+                p = f"/mnt/media_rw/{item}"
+                try:
+                    if os.path.exists(p) and os.path.isdir(p):
+                        real_p = os.path.realpath(p)
+                        if real_p not in seen_real_paths and not any(c['path'] == p for c in candidates):
+                            seen_real_paths.add(real_p)
+                            candidates.append({
+                                'name': f"USB-Media ({item})",
+                                'path': p
+                            })
+                except Exception:
+                    continue
         except Exception:
             pass
 

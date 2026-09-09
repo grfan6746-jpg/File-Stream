@@ -33,7 +33,8 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
   const handleAddCustomStorage = (e: React.FormEvent) => {
     e.preventDefault();
     if (!newStorageName.trim() || !newStoragePath.trim()) return;
-    onAddStorage(newStorageName.trim(), newStoragePath.trim());
+    const cleanName = newStorageName.trim().replace(/\//g, '-').replace(/\\/g, '-');
+    onAddStorage(cleanName, newStoragePath.trim());
     setNewStorageName('');
     setNewStoragePath('');
   };
@@ -228,8 +229,19 @@ export const SettingsView: React.FC<SettingsViewProps> = ({
                   <button
                     type="button"
                     onClick={() => {
+                      setNewStorageName('External HDD (17F8-2C26)');
+                      setNewStoragePath('/storage/17F8-2C26');
+                    }}
+                    className="rounded-lg bg-emerald-950/60 hover:bg-emerald-900/80 px-2.5 py-1 text-[11px] text-emerald-300 border border-emerald-700/60 font-medium"
+                    dir="ltr"
+                  >
+                    /storage/17F8-2C26 (هارد اکسترنال شما)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
                       setNewStorageName('Android USB Direct');
-                      setNewStoragePath('/storage/4B7A-9E21');
+                      setNewStoragePath('/storage/17F8-2C26');
                     }}
                     className="rounded-lg bg-gray-800 hover:bg-gray-700 px-2.5 py-1 text-[11px] text-gray-300 border border-gray-700"
                     dir="ltr"
